@@ -1,4 +1,4 @@
-import { Plus, ReceiptText, Search, Trash2, X } from 'lucide-react';
+import { CopyPlus, Plus, ReceiptText, Search, Trash2, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { CategoryIcon } from '../components/CategoryIcon';
 import { FILTER_CATEGORIES } from '../data/seedData';
@@ -8,6 +8,7 @@ import { formatDateHeader, formatRupiah } from '../utils/format';
 interface RiwayatPageProps {
   transactions: Transaction[];
   onEdit: (tx: Transaction) => void;
+  onDuplicate: (tx: Transaction) => void;
   onDelete: (id: string) => void;
   onOpenAddModal: () => void;
 }
@@ -22,6 +23,7 @@ interface DateGroup {
 export function RiwayatPage({
   transactions,
   onEdit,
+  onDuplicate,
   onDelete,
   onOpenAddModal,
 }: RiwayatPageProps) {
@@ -83,7 +85,7 @@ export function RiwayatPage({
   return (
     <div className="space-y-4">
       <div className="px-0.5 pt-1">
-        <h1 className="text-lg font-extrabold tracking-tight text-slate-900 dark:text-slate-100">
+        <h1 className="font-display text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100">
           Riwayat Transaksi
         </h1>
         <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
@@ -254,12 +256,12 @@ export function RiwayatPage({
                   return (
                     <div
                       key={tx.id}
-                      className="flex items-center gap-2 px-3.5 py-2.5 hover:bg-slate-50/70 dark:hover:bg-slate-800/50 transition-colors"
+                      className="px-3.5 py-2.5 hover:bg-slate-50/70 dark:hover:bg-slate-800/50 transition-colors"
                     >
                       <button
                         type="button"
                         onClick={() => onEdit(tx)}
-                        className="flex items-center gap-3 min-w-0 flex-1 text-left py-0.5 touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 rounded-lg"
+                        className="w-full flex items-center gap-3 min-w-0 text-left py-0.5 touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 rounded-lg"
                       >
                         <CategoryIcon category={tx.category} />
 
@@ -267,11 +269,6 @@ export function RiwayatPage({
                           <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">
                             {tx.note}
                           </p>
-                          <div className="mt-0.5 flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
-                            <span className="truncate">{tx.category}</span>
-                            <span aria-hidden="true">·</span>
-                            <span className="tabular-nums shrink-0">{tx.time}</span>
-                          </div>
                         </div>
 
                         <span
@@ -287,14 +284,34 @@ export function RiwayatPage({
                         </span>
                       </button>
 
-                      <button
-                        type="button"
-                        onClick={() => onDelete(tx.id)}
-                        aria-label={`Hapus transaksi ${tx.note}`}
-                        className="min-h-[44px] min-w-[44px] -mr-1.5 flex items-center justify-center rounded-xl text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/50 active:scale-95 transition-all touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <div className="mt-1 pl-[52px] flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 min-w-0">
+                          <span className="truncate">{tx.category}</span>
+                          <span aria-hidden="true">·</span>
+                          <span className="tabular-nums shrink-0">{tx.time}</span>
+                        </div>
+
+                        <div className="flex items-center gap-1 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => onDuplicate(tx)}
+                            aria-label={`Catat lagi ${tx.note}`}
+                            className="min-h-[34px] px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 text-[11px] font-semibold inline-flex items-center gap-1 active:scale-95 transition-all touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                          >
+                            <CopyPlus className="w-3.5 h-3.5" aria-hidden="true" />
+                            <span>Catat Lagi</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => onDelete(tx.id)}
+                            aria-label={`Hapus transaksi ${tx.note}`}
+                            className="min-h-[34px] min-w-[34px] flex items-center justify-center rounded-lg text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/50 active:scale-95 transition-all touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
+                          >
+                            <Trash2 className="w-4 h-4" aria-hidden="true" />
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   );
                 })}

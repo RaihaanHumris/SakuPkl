@@ -1,6 +1,9 @@
-import { AlertCircle, AlertTriangle, ShieldCheck } from 'lucide-react';
+import { AlertCircle, AlertTriangle, Eye, EyeOff, ShieldCheck } from 'lucide-react';
+import { useState } from 'react';
 import type { DailySafetyStatus, PeriodInfo } from '../types/finance';
 import { formatRupiah } from '../utils/format';
+
+const HIDE_BALANCE_STORAGE_KEY = 'sakupkl_hide_balance_v1';
 
 interface BalanceHeroCardProps {
   remainingBalance: number;
@@ -23,14 +26,40 @@ export function BalanceHeroCard({
   dailyStatusMessage,
   periodInfo,
 }: BalanceHeroCardProps) {
+  const [isBalanceHidden, setIsBalanceHidden] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem(HIDE_BALANCE_STORAGE_KEY) === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const toggleBalanceVisibility = () => {
+    setIsBalanceHidden((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem(HIDE_BALANCE_STORAGE_KEY, String(next));
+      } catch {
+        // Ignore storage errors
+      }
+      return next;
+    });
+  };
+
   const isOverbudget = dailyStatus === 'overbudget';
   const isWarning = dailyStatus === 'warning';
 
   const cardBorderClass = isOverbudget
-    ? 'border-rose-200 dark:border-rose-900/70 bg-white dark:bg-slate-900'
+    ? 'border-rose-200/90 dark:border-rose-900/70 bg-gradient-to-b from-rose-50/80 via-white to-white dark:from-rose-950/40 dark:via-slate-900 dark:to-slate-900'
     : isWarning
-      ? 'border-amber-200 dark:border-amber-900/70 bg-white dark:bg-slate-900'
-      : 'border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900';
+      ? 'border-amber-200/90 dark:border-amber-900/70 bg-gradient-to-b from-amber-50/80 via-white to-white dark:from-amber-950/40 dark:via-slate-900 dark:to-slate-900'
+      : 'border-emerald-200/70 dark:border-emerald-900/60 bg-gradient-to-b from-emerald-50/75 via-white to-white dark:from-emerald-950/35 dark:via-slate-900 dark:to-slate-900';
+
+  const topAccentClass = isOverbudget
+    ? 'bg-gradient-to-r from-rose-500 via-rose-400 to-red-500'
+    : isWarning
+      ? 'bg-gradient-to-r from-amber-500 via-amber-400 to-orange-400'
+      : 'bg-gradient-to-r from-emerald-500 via-emerald-400 to-teal-500';
 
   const progressBarColor = isOverbudget
     ? 'bg-rose-500'
@@ -53,35 +82,51 @@ export function BalanceHeroCard({
   return (
     <section
       aria-label="Ringkasan Saldo PKL"
-      className={`rounded-2xl border p-5 shadow-xs transition-colors duration-200 ${cardBorderClass}`}
+      className={`rounded-2xl border overflow-hidden shadow-sm transition-colors duration-200 ${cardBorderClass}`}
     >
+      <div className={`h-1.5 w-full ${topAccentClass}`} aria-hidden="true" />
+      <div className="p-5">
       <div className="flex items-start justify-between gap-2">
-        <div>
-          <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
-            Sisa Saldo PKL
-          </p>
+        <div className="min-w-0">
+          <div className="flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400">
+            <span>Sisa Saldo PKL</span>
+            <span aria-hidden="true">·</span>
+            <span
+              className={`font-semibold tabular-nums ${
+                isOverbudget
+                  ? 'text-rose-600 dark:text-rose-400'
+                  : isWarning
+                    ? 'text-amber-700 dark:text-amber-400'
+                    : 'text-emerald-700 dark:text-emerald-400'
+              }`}
+            >
+              {remainingPercent}% tersedia
+            </span>
+          </div>
           <p
-            className={`mt-1 text-3xl font-extrabold tracking-tight tabular-nums ${
+            className={`mt-1.5 font-display text-[32px] font-bold tracking-tight tabular-nums leading-none ${
               remainingBalance < 0
                 ? 'text-rose-600 dark:text-rose-400'
                 : 'text-slate-900 dark:text-slate-100'
             }`}
           >
-            {formatRupiah(remainingBalance)}
+            {isBalanceHidden ? 'Rp •••••••' : formatRupiah(remainingBalance)}
           </p>
         </div>
 
-        <span
-          className={`text-xs font-semibold tabular-nums px-2.5 py-1 rounded-lg whitespace-nowrap shrink-0 ${
-            isOverbudget
-              ? 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300'
-              : isWarning
-                ? 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300'
-                : 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300'
-          }`}
+        <button
+          type="button"
+          onClick={toggleBalanceVisibility}
+          aria-label={isBalanceHidden ? 'Tampilkan nominal saldo' : 'Sembunyikan nominal saldo'}
+          aria-pressed={isBalanceHidden}
+          className="min-h-[44px] min-w-[44px] -mt-2 -mr-2 flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100/80 dark:hover:bg-slate-800/70 active:scale-95 transition-all touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
         >
-          {remainingPercent}% tersisa
-        </span>
+          {isBalanceHidden ? (
+            <EyeOff className="w-4 h-4" aria-hidden="true" />
+          ) : (
+            <Eye className="w-4 h-4" aria-hidden="true" />
+          )}
+        </button>
       </div>
 
       {/* Progress Bar Sisa Anggaran */}
@@ -136,6 +181,42 @@ export function BalanceHeroCard({
         </div>
       </div>
 
+      {/* Sisa Jatah Hari Ini */}
+      {(() => {
+        const diff = dailySafeLimit - todayExpense;
+        const isOver = diff < 0;
+        return (
+          <div
+            className={`mt-3 rounded-xl px-3.5 py-2.5 flex items-center justify-between gap-2 border ${
+              isOver
+                ? 'bg-rose-50/70 dark:bg-rose-950/35 border-rose-200/80 dark:border-rose-900/60'
+                : 'bg-emerald-50/50 dark:bg-emerald-950/30 border-emerald-200/70 dark:border-emerald-900/50'
+            }`}
+          >
+            <span
+              className={`text-xs font-semibold ${
+                isOver
+                  ? 'text-rose-700 dark:text-rose-300'
+                  : 'text-emerald-800 dark:text-emerald-300'
+              }`}
+            >
+              {isOver ? 'Lewat jatah hari ini' : 'Sisa jatah hari ini'}
+            </span>
+            <span
+              className={`text-sm font-extrabold tabular-nums ${
+                isOver
+                  ? 'text-rose-600 dark:text-rose-400'
+                  : 'text-emerald-700 dark:text-emerald-400'
+              }`}
+            >
+              {isOver
+                ? `- ${formatRupiah(Math.abs(diff))}`
+                : formatRupiah(diff)}
+            </span>
+          </div>
+        );
+      })()}
+
       {/* Indikator Status Harian */}
       <div
         className={`mt-3.5 flex items-start gap-2.5 rounded-xl px-3.5 py-2.5 text-xs font-medium ${
@@ -167,6 +248,7 @@ export function BalanceHeroCard({
             ? `Peringatan: Pengeluaran hari ini sudah melebihi Rp 50.000 (${formatRupiah(todayExpense)}).`
             : dailyStatusMessage}
         </span>
+      </div>
       </div>
     </section>
   );

@@ -5,6 +5,7 @@ import {
   Car,
   Coffee,
   MoreHorizontal,
+  ShoppingBag,
   Utensils,
   Wallet,
 } from 'lucide-react';
@@ -34,6 +35,8 @@ export function CategoryIcon({ category, size = 'md' }: CategoryIconProps) {
         return <Utensils className={iconSize} strokeWidth={2} />;
       case 'Transportasi':
         return <Car className={iconSize} strokeWidth={2} />;
+      case 'Belanja Online':
+        return <ShoppingBag className={iconSize} strokeWidth={2} />;
       case 'Kebutuhan PKL':
         return <Briefcase className={iconSize} strokeWidth={2} />;
       case 'Jajan & Kopi':

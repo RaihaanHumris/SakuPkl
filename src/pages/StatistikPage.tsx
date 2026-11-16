@@ -7,14 +7,15 @@ import {
   LinearScale,
   Tooltip,
   type ChartOptions,
+  type Plugin,
 } from 'chart.js';
 import {
   ArrowDownRight,
   ArrowUpRight,
+  Compass,
   Copy,
   Download,
   PieChart as PieChartIcon,
-  Sparkles,
   TrendingDown,
 } from 'lucide-react';
 import { useMemo } from 'react';
@@ -41,6 +42,7 @@ ChartJS.register(
 const CATEGORY_HEX: Record<ExpenseCategory, string> = {
   'Makan & Minum': '#f59e0b',
   Transportasi: '#0ea5e9',
+  'Belanja Online': '#6366f1',
   'Kebutuhan PKL': '#8b5cf6',
   'Jajan & Kopi': '#f97316',
   'Lain-lain': '#64748b',
@@ -162,6 +164,12 @@ export function StatistikPage({
   }, [last7DaysSpend, dailySafeLimit, isDark]);
 
   const barChartOptions = useMemo<ChartOptions<'bar'>>(() => {
+    const maxDataVal = Math.max(0, ...last7DaysSpend.map((d) => d.amount));
+    const suggestedMax =
+      dailySafeLimit > 0 && maxDataVal > 0 && maxDataVal < dailySafeLimit * 1.15
+        ? Math.ceil(dailySafeLimit * 1.15)
+        : undefined;
+
     return {
       responsive: true,
       maintainAspectRatio: false,
@@ -203,6 +211,7 @@ export function StatistikPage({
         },
         y: {
           beginAtZero: true,
+          suggestedMax,
           border: {
             display: false,
           },
@@ -223,7 +232,43 @@ export function StatistikPage({
         },
       },
     };
-  }, [isDark, last7DaysSpend]);
+  }, [isDark, last7DaysSpend, dailySafeLimit]);
+
+  const safeLimitLinePlugin = useMemo<Plugin<'bar'>>(() => {
+    return {
+      id: 'safeLimitLine',
+      afterDatasetsDraw(chart) {
+        if (dailySafeLimit <= 0) return;
+        const {
+          ctx,
+          chartArea: { left, right, top, bottom },
+          scales: { y },
+        } = chart;
+        if (!y) return;
+        const yPos = y.getPixelForValue(dailySafeLimit);
+        if (yPos < top || yPos > bottom) return;
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.setLineDash([4, 4]);
+        ctx.lineWidth = 1.5;
+        ctx.strokeStyle = isDark
+          ? 'rgba(245, 158, 11, 0.7)'
+          : 'rgba(217, 119, 6, 0.65)';
+        ctx.moveTo(left, yPos);
+        ctx.lineTo(right, yPos);
+        ctx.stroke();
+
+        ctx.setLineDash([]);
+        ctx.font = '600 10px "Plus Jakarta Sans", sans-serif';
+        ctx.fillStyle = isDark ? '#fbbf24' : '#b45309';
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'bottom';
+        ctx.fillText('Batas', right - 2, yPos - 3);
+        ctx.restore();
+      },
+    };
+  }, [dailySafeLimit, isDark]);
 
   const handleCopy = () => {
     const lines = [
@@ -244,7 +289,7 @@ export function StatistikPage({
   return (
     <div className="space-y-4">
       <div className="px-0.5 pt-1">
-        <h1 className="text-lg font-extrabold tracking-tight text-slate-900 dark:text-slate-100">
+        <h1 className="font-display text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100">
           Statistik PKL
         </h1>
         <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
@@ -281,7 +326,7 @@ export function StatistikPage({
             <ArrowUpRight className="w-4 h-4 text-rose-500" aria-hidden="true" />
             <span>Total Pengeluaran</span>
           </div>
-          <p className="mt-1.5 text-xl font-extrabold text-slate-900 dark:text-slate-100 tabular-nums">
+          <p className="mt-1.5 font-display text-xl font-bold text-slate-900 dark:text-slate-100 tabular-nums">
             {formatRupiah(totalExpense)}
           </p>
           <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400 tabular-nums">
@@ -294,7 +339,7 @@ export function StatistikPage({
             <ArrowDownRight className="w-4 h-4 text-emerald-500" aria-hidden="true" />
             <span>Total Pemasukan</span>
           </div>
-          <p className="mt-1.5 text-xl font-extrabold text-emerald-600 dark:text-emerald-400 tabular-nums">
+          <p className="mt-1.5 font-display text-xl font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">
             {formatRupiah(totalBudgetPool)}
           </p>
           <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400 tabular-nums">
@@ -323,18 +368,18 @@ export function StatistikPage({
                 : 'bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300'
             }`}
           >
-            <Sparkles className="w-4 h-4" />
+            <Compass className="w-4 h-4" />
           </div>
           <div className="min-w-0 flex-1">
-            <h2 className="text-xs font-bold text-slate-900 dark:text-slate-100">
-              Proyeksi Akhir Periode PKL
+            <h2 className="font-display text-xs font-bold text-slate-900 dark:text-slate-100">
+              Estimasi Saldo Akhir PKL
             </h2>
             <p className="mt-1 text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
               {totalExpense === 0
-                ? 'Belum ada pengeluaran tercatat. Catat transaksimu untuk melihat proyeksi ketahanan uang saku.'
+                ? 'Belum ada pengeluaran tercatat. Catat transaksimu untuk melihat perkiraan ketahanan uang saku.'
                 : projectedEndBalance >= 0
-                  ? `Dengan rata-rata ${formatRupiah(averageDailyExpense)}/hari, saldomu cukup hingga hari terakhir dengan estimasi sisa ${formatRupiah(projectedEndBalance)}.`
-                  : `Dengan rata-rata ${formatRupiah(averageDailyExpense)}/hari, saldo diperkirakan hanya bertahan sekitar ${runwayDays} hari dari ${periodInfo.remainingDays} hari tersisa.`}
+                  ? `Dengan rata-rata ${formatRupiah(averageDailyExpense)}/hari, saldomu cukup hingga hari terakhir dengan perkiraan sisa ${formatRupiah(projectedEndBalance)}.`
+                  : `Dengan rata-rata ${formatRupiah(averageDailyExpense)}/hari, saldo diperkirakan bertahan sekitar ${runwayDays} hari dari ${periodInfo.remainingDays} hari tersisa.`}
             </p>
           </div>
         </div>
@@ -351,7 +396,7 @@ export function StatistikPage({
               className="w-4 h-4 text-slate-600 dark:text-slate-400"
               aria-hidden="true"
             />
-            <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100">
+            <h2 className="font-display text-sm font-bold text-slate-900 dark:text-slate-100">
               Tren 7 Hari Terakhir
             </h2>
           </div>
@@ -361,7 +406,11 @@ export function StatistikPage({
         </div>
 
         <div className="h-48 w-full">
-          <Bar data={barChartData} options={barChartOptions} />
+          <Bar
+            data={barChartData}
+            options={barChartOptions}
+            plugins={[safeLimitLinePlugin]}
+          />
         </div>
       </section>
 
@@ -376,7 +425,7 @@ export function StatistikPage({
               className="w-4 h-4 text-emerald-600 dark:text-emerald-400"
               aria-hidden="true"
             />
-            <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100">
+            <h2 className="font-display text-sm font-bold text-slate-900 dark:text-slate-100">
               Pengeluaran per Kategori
             </h2>
           </div>
@@ -401,7 +450,7 @@ export function StatistikPage({
                 <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
                   Total Keluar
                 </span>
-                <span className="text-base font-extrabold text-slate-900 dark:text-slate-100 tabular-nums mt-0.5">
+                <span className="font-display text-base font-bold text-slate-900 dark:text-slate-100 tabular-nums mt-0.5">
                   {formatRupiah(totalExpense)}
                 </span>
               </div>
@@ -411,7 +460,9 @@ export function StatistikPage({
               {categoryBreakdown.map((item) => (
                 <div
                   key={item.category}
-                  className="py-3 first:pt-3 last:pb-1 flex items-center justify-between gap-3"
+                  className={`py-3 first:pt-3 last:pb-1 flex items-center justify-between gap-3 ${
+                    item.amount === 0 ? 'opacity-50' : ''
+                  }`}
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
                     <span

@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { BottomNav } from './components/BottomNav';
 import { Header } from './components/Header';
+import { NotifParserModal } from './components/NotifParserModal';
 import { OfflineIndicator } from './components/OfflineIndicator';
+import { QuickTemplateModal } from './components/QuickTemplateModal';
 import { TransactionModal } from './components/TransactionModal';
 import { useFinanceStore, type TransactionInput } from './hooks/useFinanceStore';
 import { useTheme } from './hooks/useTheme';
@@ -13,10 +15,16 @@ import type {
   ActivePage,
   BudgetSettings,
   QuickTemplate,
+  QuickTemplateGroup,
   Transaction,
 } from './types/finance';
 import { formatRupiah, getLocalDateString } from './utils/format';
-import { notifyLargeExpenseWarning, notifyToast } from './utils/notify';
+import {
+  confirmDialog,
+  notifyLargeExpenseWarning,
+  notifyToast,
+} from './utils/notify';
+import type { QuickTemplateInput } from './utils/quickTemplates';
 
 const LARGE_EXPENSE_THRESHOLD = 50000;
 
@@ -25,6 +33,7 @@ export default function App() {
   const {
     budget,
     transactions,
+    quickTemplates,
     metrics,
     categoryBreakdown,
     last7DaysSpend,
@@ -33,14 +42,44 @@ export default function App() {
     deleteTransaction,
     restoreTransaction,
     updateBudget,
+    updateAvatar,
     startFromZero,
     resetAllData,
+    addQuickTemplate,
+    updateQuickTemplate,
+    deleteQuickTemplate,
+    restoreQuickTemplate,
+    resetQuickTemplates,
     exportToCsv,
   } = useFinanceStore();
 
   const [activePage, setActivePage] = useState<ActivePage>('beranda');
   const [isTxModalOpen, setIsTxModalOpen] = useState(false);
+  const [isNotifModalOpen, setIsNotifModalOpen] = useState(false);
+  const [sharedNotifText, setSharedNotifText] = useState('');
   const [editingTx, setEditingTx] = useState<Transaction | null>(null);
+  const [isQuickModalOpen, setIsQuickModalOpen] = useState(false);
+  const [editingQuickTpl, setEditingQuickTpl] = useState<QuickTemplate | null>(null);
+  const [quickModalGroup, setQuickModalGroup] =
+    useState<QuickTemplateGroup>('makanan');
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const notifTextParam = params.get('notif_text')?.trim();
+    const shareTitle = params.get('title')?.trim();
+    const shareText = params.get('text')?.trim();
+    const shareUrl = params.get('url')?.trim();
+
+    const incomingText =
+      notifTextParam ||
+      [shareTitle, shareText, shareUrl].filter(Boolean).join(' ').trim();
+
+    if (incomingText) {
+      setSharedNotifText(incomingText);
+      setIsNotifModalOpen(true);
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, []);
 
   const handleNavigate = (page: ActivePage) => {
     setActivePage(page);
@@ -202,6 +241,17 @@ export default function App() {
     });
   };
 
+  const handleUpdateAvatar = (nextAvatar: string | undefined) => {
+    updateAvatar(nextAvatar);
+    void notifyToast({
+      title: nextAvatar ? 'Foto profil diperbarui!' : 'Foto profil dihapus',
+      text: nextAvatar
+        ? 'Foto barumu sekarang tampil di Beranda.'
+        : 'Kembali menggunakan inisial nama.',
+      icon: nextAvatar ? 'success' : 'info',
+    });
+  };
+
   const handleStartFromZero = (customBudget?: Partial<BudgetSettings>) => {
     startFromZero(customBudget);
     setActivePage('beranda');
@@ -225,6 +275,74 @@ export default function App() {
     exportToCsv();
     void notifyToast({
       title: 'Laporan CSV berhasil diunduh!',
+      icon: 'success',
+    });
+  };
+
+  const handleOpenAddQuickTemplate = (group: QuickTemplateGroup = 'makanan') => {
+    setEditingQuickTpl(null);
+    setQuickModalGroup(group);
+    setIsQuickModalOpen(true);
+  };
+
+  const handleOpenEditQuickTemplate = (tpl: QuickTemplate) => {
+    setEditingQuickTpl(tpl);
+    setQuickModalGroup(tpl.group);
+    setIsQuickModalOpen(true);
+  };
+
+  const handleSaveQuickTemplate = (
+    input: QuickTemplateInput,
+    editId?: string
+  ) => {
+    if (editId) {
+      updateQuickTemplate(editId, input);
+      void notifyToast({
+        title: `Menu "${input.label}" diperbarui!`,
+        text: `${formatRupiah(input.amount)} · ${input.category}`,
+        icon: 'success',
+      });
+      return;
+    }
+
+    const created = addQuickTemplate(input);
+    void notifyToast({
+      title: `Menu "${created.label}" ditambahkan!`,
+      text: `${formatRupiah(created.amount)} · Siap ketuk 1x`,
+      icon: 'success',
+    });
+  };
+
+  const handleDeleteQuickTemplate = (tpl: QuickTemplate) => {
+    const deleted = deleteQuickTemplate(tpl.id);
+    if (deleted) {
+      void notifyToast({
+        title: `Menu "${deleted.label}" dihapus`,
+        icon: 'info',
+        undoAction: () => {
+          restoreQuickTemplate(deleted);
+          void notifyToast({
+            title: `Menu "${deleted.label}" dipulihkan`,
+            icon: 'success',
+            timer: 2000,
+          });
+        },
+      });
+    }
+  };
+
+  const handleResetQuickTemplates = async () => {
+    const confirmed = await confirmDialog({
+      title: 'Reset Menu Tambah Cepat?',
+      text: 'Daftar menu cepat akan dikembalikan ke bawaan awal SakuPkl (Nasi Telor, Magelangan, Kukubima, dll.).',
+      confirmText: 'Ya, Reset Default',
+      cancelText: 'Batal',
+    });
+    if (!confirmed) return;
+
+    resetQuickTemplates();
+    void notifyToast({
+      title: 'Menu Tambah Cepat dikembalikan ke default',
       icon: 'success',
     });
   };
@@ -262,6 +380,7 @@ export default function App() {
             <BerandaPage
               userName={budget.userName}
               pklPlace={budget.pklPlace}
+              avatarDataUrl={budget.avatarDataUrl}
               remainingBalance={metrics.remainingBalance}
               totalBudgetPool={metrics.totalBudgetPool}
               remainingPercent={metrics.remainingPercent}
@@ -269,12 +388,24 @@ export default function App() {
               todayExpense={metrics.todayExpense}
               dailyStatus={metrics.dailyStatus}
               dailyStatusMessage={metrics.dailyStatusMessage}
+              profileBadge={metrics.profileBadge}
               periodInfo={metrics.periodInfo}
               recentTransactions={transactions.slice(0, 5)}
               totalTransactionCount={transactions.length}
+              quickTemplates={quickTemplates}
               onQuickAdd={handleQuickAdd}
+              onAddQuickTemplate={handleOpenAddQuickTemplate}
+              onEditQuickTemplate={handleOpenEditQuickTemplate}
+              onDeleteQuickTemplate={handleDeleteQuickTemplate}
+              onResetQuickTemplates={() => {
+                void handleResetQuickTemplates();
+              }}
               onEditTransaction={openEditModal}
               onOpenAddModal={openAddModal}
+              onOpenNotifModal={() => {
+                setSharedNotifText('');
+                setIsNotifModalOpen(true);
+              }}
               onNavigate={handleNavigate}
             />
           )}
@@ -283,6 +414,15 @@ export default function App() {
             <RiwayatPage
               transactions={transactions}
               onEdit={openEditModal}
+              onDuplicate={(tx) =>
+                handleSaveTransaction({
+                  type: tx.type,
+                  category: tx.category,
+                  amount: tx.amount,
+                  note: tx.note,
+                  date: getLocalDateString(),
+                })
+              }
               onDelete={handleDeleteTransaction}
               onOpenAddModal={openAddModal}
             />
@@ -317,6 +457,7 @@ export default function App() {
               isDark={isDark}
               onToggleTheme={toggleTheme}
               onSaveBudget={handleSaveBudget}
+              onUpdateAvatar={handleUpdateAvatar}
               onStartFromZero={handleStartFromZero}
               onResetToDemo={handleResetToDemo}
               onExportCsv={handleExportCsv}
@@ -339,6 +480,28 @@ export default function App() {
           }}
           onSave={handleSaveTransaction}
           onDelete={handleDeleteTransaction}
+        />
+
+        <NotifParserModal
+          isOpen={isNotifModalOpen}
+          initialText={sharedNotifText}
+          onClose={() => {
+            setIsNotifModalOpen(false);
+            setSharedNotifText('');
+          }}
+          onSave={(input) => handleSaveTransaction(input)}
+        />
+
+        <QuickTemplateModal
+          isOpen={isQuickModalOpen}
+          editingTemplate={editingQuickTpl}
+          defaultGroup={quickModalGroup}
+          onClose={() => {
+            setIsQuickModalOpen(false);
+            setEditingQuickTpl(null);
+          }}
+          onSave={handleSaveQuickTemplate}
+          onDelete={handleDeleteQuickTemplate}
         />
       </div>
     </div>

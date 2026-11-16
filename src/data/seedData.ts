@@ -11,6 +11,7 @@ import { offsetDateString } from '../utils/format';
 export const EXPENSE_CATEGORIES: ExpenseCategory[] = [
   'Makan & Minum',
   'Transportasi',
+  'Belanja Online',
   'Kebutuhan PKL',
   'Jajan & Kopi',
   'Lain-lain',
@@ -50,6 +51,11 @@ export const CATEGORY_STYLES: Record<TransactionCategory, CategoryStyle> = {
     bgClass: 'bg-sky-50 dark:bg-sky-950/60',
     textClass: 'text-sky-600 dark:text-sky-400',
     barClass: 'bg-sky-500',
+  },
+  'Belanja Online': {
+    bgClass: 'bg-indigo-50 dark:bg-indigo-950/60',
+    textClass: 'text-indigo-600 dark:text-indigo-400',
+    barClass: 'bg-indigo-500',
   },
   'Kebutuhan PKL': {
     bgClass: 'bg-violet-50 dark:bg-violet-950/60',

@@ -1,16 +1,25 @@
 import {
   Building2,
+  Camera,
   Download,
   Eraser,
   Moon,
   RotateCcw,
   Save,
   Sun,
+  Trash2,
   User,
 } from 'lucide-react';
-import { useEffect, useState, type FormEvent } from 'react';
+import {
+  useEffect,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type FormEvent,
+} from 'react';
 import { ALLOWANCE_PRESETS, DURATION_PRESETS } from '../data/seedData';
 import type { BudgetSettings, PeriodInfo } from '../types/finance';
+import { compressImageToAvatarDataUrl, getInitials } from '../utils/avatar';
 import {
   formatCompactRupiah,
   formatReadableDate,
@@ -19,7 +28,7 @@ import {
   getLocalDateString,
   parseThousandsInput,
 } from '../utils/format';
-import { confirmDialog } from '../utils/notify';
+import { confirmDialog, notifyToast } from '../utils/notify';
 import { PWAInstallButton } from '../components/PWAInstallButton';
 
 interface AnggaranPageProps {
@@ -29,6 +38,7 @@ interface AnggaranPageProps {
   isDark: boolean;
   onToggleTheme: () => void;
   onSaveBudget: (nextBudget: BudgetSettings) => void;
+  onUpdateAvatar: (avatarDataUrl: string | undefined) => void;
   onStartFromZero: (customBudget?: Partial<BudgetSettings>) => void;
   onResetToDemo: () => void;
   onExportCsv: () => void;
@@ -41,6 +51,7 @@ export function AnggaranPage({
   isDark,
   onToggleTheme,
   onSaveBudget,
+  onUpdateAvatar,
   onStartFromZero,
   onResetToDemo,
   onExportCsv,
@@ -52,6 +63,8 @@ export function AnggaranPage({
   );
   const [durationInput, setDurationInput] = useState(String(budget.durationDays));
   const [startDate, setStartDate] = useState(budget.startDate);
+  const [isProcessingAvatar, setIsProcessingAvatar] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setUserName(budget.userName);
@@ -64,6 +77,28 @@ export function AnggaranPage({
   const parsedAllowance = parseThousandsInput(allowanceInput);
   const parsedDuration = Math.max(1, parseInt(durationInput, 10) || 1);
   const estimatedDaily = Math.floor(parsedAllowance / parsedDuration);
+  const initials = getInitials(userName || budget.userName);
+
+  const handleAvatarFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+
+    setIsProcessingAvatar(true);
+    try {
+      const compressedDataUrl = await compressImageToAvatarDataUrl(file, 192);
+      onUpdateAvatar(compressedDataUrl);
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : 'Gagal memproses foto profil.';
+      void notifyToast({
+        title: message,
+        icon: 'error',
+      });
+    } finally {
+      setIsProcessingAvatar(false);
+    }
+  };
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -73,6 +108,7 @@ export function AnggaranPage({
       totalAllowance: parsedAllowance,
       durationDays: parsedDuration,
       startDate: startDate || getLocalDateString(),
+      avatarDataUrl: budget.avatarDataUrl,
     });
   };
 
@@ -92,6 +128,7 @@ export function AnggaranPage({
         totalAllowance: parsedAllowance,
         durationDays: parsedDuration,
         startDate: getLocalDateString(),
+        avatarDataUrl: budget.avatarDataUrl,
       });
     }
   };
@@ -113,7 +150,7 @@ export function AnggaranPage({
   return (
     <div className="space-y-4">
       <div className="px-0.5 pt-1">
-        <h1 className="text-lg font-extrabold tracking-tight text-slate-900 dark:text-slate-100">
+        <h1 className="font-display text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100">
           Anggaran & Data
         </h1>
         <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
@@ -170,8 +207,73 @@ export function AnggaranPage({
             Profil & Uang Saku PKL
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Atur total anggaran dan durasi PKL agar batas harianmu akurat.
+            Atur foto profil, total anggaran, dan durasi PKL agar batas harianmu akurat.
           </p>
+        </div>
+
+        {/* Foto Profil */}
+        <div className="flex items-center gap-3.5 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200/70 dark:border-slate-700/70">
+          {budget.avatarDataUrl ? (
+            <img
+              src={budget.avatarDataUrl}
+              alt={`Foto profil ${userName || budget.userName}`}
+              className="w-14 h-14 rounded-full object-cover shrink-0 shadow-xs border-2 border-emerald-200 dark:border-emerald-700"
+            />
+          ) : (
+            <div
+              className="w-14 h-14 rounded-full bg-emerald-600 text-white text-base font-extrabold flex items-center justify-center shrink-0 shadow-xs"
+              aria-hidden="true"
+            >
+              {initials}
+            </div>
+          )}
+
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-bold text-slate-900 dark:text-slate-100">
+              Foto Profil
+            </p>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">
+              Tampil di kartu sapaan Beranda (otomatis dipotong persegi).
+            </p>
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                aria-label="Pilih foto profil dari perangkat"
+                onChange={handleAvatarFileChange}
+                className="sr-only"
+              />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isProcessingAvatar}
+                className="min-h-[44px] px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-xs font-bold text-white inline-flex items-center gap-1.5 active:scale-[0.98] transition-all touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+              >
+                <Camera className="w-3.5 h-3.5" aria-hidden="true" />
+                <span>
+                  {isProcessingAvatar
+                    ? 'Memproses...'
+                    : budget.avatarDataUrl
+                      ? 'Ganti Foto'
+                      : 'Pilih Foto'}
+                </span>
+              </button>
+
+              {budget.avatarDataUrl && (
+                <button
+                  type="button"
+                  onClick={() => onUpdateAvatar(undefined)}
+                  disabled={isProcessingAvatar}
+                  aria-label="Hapus foto profil"
+                  className="min-h-[44px] px-3 py-1.5 rounded-xl border border-rose-200 dark:border-rose-900/70 bg-white dark:bg-slate-900 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-xs font-semibold text-rose-600 dark:text-rose-400 inline-flex items-center gap-1.5 active:scale-[0.98] transition-all touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
+                >
+                  <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
+                  <span>Hapus</span>
+                </button>
+              )}
+            </div>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

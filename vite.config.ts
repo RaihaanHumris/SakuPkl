@@ -30,6 +30,15 @@ export default defineConfig(() => {
           display: 'standalone',
           start_url: '/',
           scope: '/',
+          share_target: {
+            action: '/',
+            method: 'GET',
+            params: {
+              title: 'title',
+              text: 'text',
+              url: 'url',
+            },
+          },
           icons: [
             {
               src: '/pwa-192x192.png',
@@ -52,6 +61,9 @@ export default defineConfig(() => {
           ],
         },
         workbox: {
+          cleanupOutdatedCaches: true,
+          skipWaiting: true,
+          clientsClaim: true,
           globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
           runtimeCaching: [
             {

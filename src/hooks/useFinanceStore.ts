@@ -4,11 +4,13 @@ import {
   createFreshZeroBudget,
   createSeedTransactions,
   EXPENSE_CATEGORIES,
+  QUICK_TEMPLATES,
 } from '../data/seedData';
 import type {
   BudgetSettings,
   DailySafetyStatus,
   ExpenseCategory,
+  QuickTemplate,
   Transaction,
   TransactionCategory,
   TransactionType,
@@ -19,9 +21,23 @@ import {
   getLocalDateString,
   offsetDateString,
 } from '../utils/format';
+import {
+  calculateSavingStreak,
+  calculateTodayRemaining,
+  getProfileStatusBadge,
+} from '../utils/dailyInsights';
+import {
+  createQuickTemplate,
+  deleteQuickTemplateFromList,
+  normalizeQuickTemplates,
+  updateQuickTemplateInList,
+  type QuickTemplateInput,
+} from '../utils/quickTemplates';
+import { sanitizeAvatarDataUrl } from '../utils/avatar';
 
 const STORAGE_KEY_BUDGET = 'sakupkl_budget_v1';
 const STORAGE_KEY_TRANSACTIONS = 'sakupkl_transactions_v1';
+const STORAGE_KEY_QUICK_TEMPLATES = 'sakupkl_quick_templates_v1';
 
 function loadInitialBudget(): BudgetSettings {
   try {
@@ -44,6 +60,7 @@ function loadInitialBudget(): BudgetSettings {
           totalAllowance: Math.max(0, parsed.totalAllowance),
           durationDays: Math.max(1, parsed.durationDays),
           startDate: parsed.startDate,
+          avatarDataUrl: sanitizeAvatarDataUrl(parsed.avatarDataUrl),
         };
       }
     }
@@ -66,6 +83,19 @@ function loadInitialTransactions(): Transaction[] {
     // Fallback to seed transactions
   }
   return createSeedTransactions();
+}
+
+function loadInitialQuickTemplates(): QuickTemplate[] {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_QUICK_TEMPLATES);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      return normalizeQuickTemplates(parsed, QUICK_TEMPLATES);
+    }
+  } catch {
+    // Fallback to default templates
+  }
+  return QUICK_TEMPLATES;
 }
 
 export interface TransactionInput {
@@ -92,6 +122,9 @@ export interface DailyTrendItem {
 export function useFinanceStore() {
   const [budget, setBudget] = useState<BudgetSettings>(loadInitialBudget);
   const [transactions, setTransactions] = useState<Transaction[]>(loadInitialTransactions);
+  const [quickTemplates, setQuickTemplates] = useState<QuickTemplate[]>(
+    loadInitialQuickTemplates
+  );
 
   useEffect(() => {
     try {
@@ -108,6 +141,17 @@ export function useFinanceStore() {
       // Ignore storage quota errors
     }
   }, [transactions]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(
+        STORAGE_KEY_QUICK_TEMPLATES,
+        JSON.stringify(quickTemplates)
+      );
+    } catch {
+      // Ignore storage quota errors
+    }
+  }, [quickTemplates]);
 
   const sortedTransactions = useMemo(() => {
     return [...transactions].sort((a, b) => {
@@ -181,6 +225,19 @@ export function useFinanceStore() {
         ? Math.max(0, Math.floor(remainingBalance / averageDailyExpense))
         : periodInfo.remainingDays;
 
+    const todayRemaining = calculateTodayRemaining(dailySafeLimit, todayExpense);
+    const savingStreakDays = calculateSavingStreak(
+      transactions,
+      dailySafeLimit,
+      todayStr,
+      Math.max(1, periodInfo.currentDay || 1)
+    );
+    const profileBadge = getProfileStatusBadge({
+      dailyStatus,
+      remainingBalance,
+      savingStreakDays,
+    });
+
     return {
       totalExpense,
       totalAdditionalIncome,
@@ -189,6 +246,8 @@ export function useFinanceStore() {
       remainingPercent,
       todayExpense,
       todayIncome,
+      todayRemaining,
+      profileBadge,
       dailySafeLimit,
       dailyStatus,
       dailyStatusMessage,
@@ -310,13 +369,24 @@ export function useFinanceStore() {
   }, []);
 
   const updateBudget = useCallback((nextBudget: BudgetSettings) => {
-    setBudget({
+    setBudget((prev) => ({
       userName: nextBudget.userName.trim() || 'Muhammad Raihaan Humris',
       pklPlace: nextBudget.pklPlace.trim(),
       totalAllowance: Math.max(0, Math.round(nextBudget.totalAllowance)),
       durationDays: Math.max(1, Math.round(nextBudget.durationDays)),
       startDate: nextBudget.startDate || getLocalDateString(),
-    });
+      avatarDataUrl:
+        nextBudget.avatarDataUrl !== undefined
+          ? sanitizeAvatarDataUrl(nextBudget.avatarDataUrl)
+          : prev.avatarDataUrl,
+    }));
+  }, []);
+
+  const updateAvatar = useCallback((avatarDataUrl: string | undefined) => {
+    setBudget((prev) => ({
+      ...prev,
+      avatarDataUrl: sanitizeAvatarDataUrl(avatarDataUrl),
+    }));
   }, []);
 
   const startFromZero = useCallback((customBudget?: Partial<BudgetSettings>) => {
@@ -334,6 +404,10 @@ export function useFinanceStore() {
           ? Math.max(1, Math.round(customBudget.durationDays))
           : prev.durationDays,
       startDate: customBudget?.startDate || getLocalDateString(),
+      avatarDataUrl:
+        customBudget?.avatarDataUrl !== undefined
+          ? sanitizeAvatarDataUrl(customBudget.avatarDataUrl)
+          : prev.avatarDataUrl,
     }));
     setTransactions([]);
   }, []);
@@ -341,6 +415,42 @@ export function useFinanceStore() {
   const resetAllData = useCallback(() => {
     setBudget(createDefaultBudget());
     setTransactions(createSeedTransactions());
+  }, []);
+
+  const addQuickTemplate = useCallback(
+    (input: QuickTemplateInput): QuickTemplate => {
+      const created = createQuickTemplate(input);
+      setQuickTemplates((prev) => [...prev, created]);
+      return created;
+    },
+    []
+  );
+
+  const updateQuickTemplate = useCallback(
+    (id: string, input: QuickTemplateInput) => {
+      setQuickTemplates((prev) => updateQuickTemplateInList(prev, id, input));
+    },
+    []
+  );
+
+  const deleteQuickTemplate = useCallback((id: string): QuickTemplate | null => {
+    let deleted: QuickTemplate | null = null;
+    setQuickTemplates((prev) => {
+      deleted = prev.find((item) => item.id === id) ?? null;
+      return deleteQuickTemplateFromList(prev, id);
+    });
+    return deleted;
+  }, []);
+
+  const restoreQuickTemplate = useCallback((tpl: QuickTemplate) => {
+    setQuickTemplates((prev) => {
+      if (prev.some((item) => item.id === tpl.id)) return prev;
+      return [...prev, tpl];
+    });
+  }, []);
+
+  const resetQuickTemplates = useCallback(() => {
+    setQuickTemplates(QUICK_TEMPLATES);
   }, []);
 
   const exportToCsv = useCallback(() => {
@@ -379,6 +489,7 @@ export function useFinanceStore() {
   return {
     budget,
     transactions: sortedTransactions,
+    quickTemplates,
     metrics,
     categoryBreakdown,
     last7DaysSpend,
@@ -387,8 +498,14 @@ export function useFinanceStore() {
     deleteTransaction,
     restoreTransaction,
     updateBudget,
+    updateAvatar,
     startFromZero,
     resetAllData,
+    addQuickTemplate,
+    updateQuickTemplate,
+    deleteQuickTemplate,
+    restoreQuickTemplate,
+    resetQuickTemplates,
     exportToCsv,
   };
 }

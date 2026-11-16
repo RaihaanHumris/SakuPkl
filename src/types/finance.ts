@@ -3,6 +3,7 @@ export type TransactionType = 'expense' | 'income';
 export type ExpenseCategory =
   | 'Makan & Minum'
   | 'Transportasi'
+  | 'Belanja Online'
   | 'Kebutuhan PKL'
   | 'Jajan & Kopi'
   | 'Lain-lain';
@@ -33,6 +34,7 @@ export interface Transaction {
 export interface BudgetSettings {
   userName: string;
   pklPlace: string;
+  avatarDataUrl?: string;
   totalAllowance: number;
   durationDays: number;
   startDate: string; // YYYY-MM-DD
