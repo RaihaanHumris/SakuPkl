@@ -83,10 +83,10 @@ export function RiwayatPage({
   return (
     <div className="space-y-4">
       <div className="px-0.5 pt-1">
-        <h1 className="text-lg font-extrabold tracking-tight text-slate-900">
+        <h1 className="text-lg font-extrabold tracking-tight text-slate-900 dark:text-slate-100">
           Riwayat Transaksi
         </h1>
-        <p className="text-xs text-slate-500 mt-0.5">
+        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
           Cari, filter, atau ketuk catatan untuk mengubah detailnya
         </p>
       </div>
@@ -103,14 +103,14 @@ export function RiwayatPage({
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Cari catatan atau kategori..."
           aria-label="Cari catatan transaksi"
-          className="w-full h-12 pl-10 pr-10 rounded-xl bg-white border border-slate-200/90 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
+          className="w-full h-12 pl-10 pr-10 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
         />
         {searchQuery && (
           <button
             type="button"
             onClick={() => setSearchQuery('')}
             aria-label="Hapus pencarian"
-            className="min-h-[44px] min-w-[44px] flex items-center justify-center absolute right-0.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 rounded-lg touch-manipulation"
+            className="min-h-[44px] min-w-[44px] flex items-center justify-center absolute right-0.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg touch-manipulation"
           >
             <X className="w-4 h-4" />
           </button>
@@ -118,7 +118,7 @@ export function RiwayatPage({
       </div>
 
       {/* Segmented Type Filter */}
-      <div className="grid grid-cols-3 gap-1 p-1 rounded-xl bg-slate-200/60">
+      <div className="grid grid-cols-3 gap-1 p-1 rounded-xl bg-slate-200/60 dark:bg-slate-900 border border-transparent dark:border-slate-800">
         {(
           [
             { id: 'all', label: 'Semua' },
@@ -134,8 +134,8 @@ export function RiwayatPage({
               onClick={() => setTypeFilter(tab.id)}
               className={`min-h-[38px] rounded-lg text-xs font-semibold transition-all touch-manipulation ${
                 isActive
-                  ? 'bg-white text-slate-900 shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 shadow-xs'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
             >
               {tab.label}
@@ -161,8 +161,8 @@ export function RiwayatPage({
               onClick={() => setSelectedCategory(category)}
               className={`min-h-[40px] px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap shrink-0 transition-all duration-150 touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${
                 isActive
-                  ? 'bg-slate-900 text-white shadow-xs'
-                  : 'bg-white border border-slate-200/80 text-slate-600 hover:text-slate-900'
+                  ? 'bg-slate-900 dark:bg-emerald-500 text-white dark:text-slate-950 shadow-xs'
+                  : 'bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100'
               }`}
             >
               {category}
@@ -173,18 +173,18 @@ export function RiwayatPage({
 
       {/* Summary Strip */}
       {filteredTransactions.length > 0 && (
-        <div className="rounded-xl bg-white border border-slate-200/80 px-3.5 py-2.5 flex items-center justify-between text-xs">
-          <span className="text-slate-500 tabular-nums">
+        <div className="rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 px-3.5 py-2.5 flex items-center justify-between text-xs">
+          <span className="text-slate-500 dark:text-slate-400 tabular-nums">
             {filteredTransactions.length} transaksi
           </span>
           <div className="flex items-center gap-3 tabular-nums">
             {filteredSummary.expense > 0 && (
-              <span className="font-semibold text-rose-600">
+              <span className="font-semibold text-rose-600 dark:text-rose-400">
                 Keluar {formatRupiah(filteredSummary.expense)}
               </span>
             )}
             {filteredSummary.income > 0 && (
-              <span className="font-semibold text-emerald-600">
+              <span className="font-semibold text-emerald-600 dark:text-emerald-400">
                 Masuk {formatRupiah(filteredSummary.income)}
               </span>
             )}
@@ -194,16 +194,16 @@ export function RiwayatPage({
 
       {/* Grouped Transaction List or Empty State */}
       {groupedByDate.length === 0 ? (
-        <div className="rounded-2xl bg-white border border-slate-200/80 p-8 text-center">
-          <div className="w-14 h-14 mx-auto rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center">
+        <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-8 text-center">
+          <div className="w-14 h-14 mx-auto rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center">
             <ReceiptText className="w-7 h-7" strokeWidth={1.75} />
           </div>
-          <h2 className="mt-3.5 text-sm font-bold text-slate-900">
+          <h2 className="mt-3.5 text-sm font-bold text-slate-900 dark:text-slate-100">
             {hasActiveFilter
               ? 'Tidak ada transaksi yang cocok'
               : 'Belum ada riwayat transaksi'}
           </h2>
-          <p className="mt-1 text-xs text-slate-500 max-w-[240px] mx-auto leading-relaxed">
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 max-w-[240px] mx-auto leading-relaxed">
             {hasActiveFilter
               ? 'Coba ubah kata kunci pencarian atau reset filter yang aktif.'
               : 'Semua catatan keluar masuk uang sakumu akan tampil rapi di sini.'}
@@ -217,7 +217,7 @@ export function RiwayatPage({
                   setTypeFilter('all');
                   setSelectedCategory('Semua');
                 }}
-                className="min-h-[44px] px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-xs font-semibold text-slate-800 transition-colors touch-manipulation"
+                className="min-h-[44px] px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-semibold text-slate-800 dark:text-slate-200 transition-colors touch-manipulation"
               >
                 Reset Filter
               </button>
@@ -238,21 +238,23 @@ export function RiwayatPage({
           {groupedByDate.map((group) => (
             <div key={group.date}>
               <div className="flex items-center justify-between px-1 mb-2">
-                <h2 className="text-xs font-bold text-slate-500">{group.label}</h2>
+                <h2 className="text-xs font-bold text-slate-500 dark:text-slate-400">
+                  {group.label}
+                </h2>
                 {group.expenseSubtotal > 0 && (
-                  <span className="text-xs font-semibold text-slate-500 tabular-nums">
+                  <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 tabular-nums">
                     Keluar {formatRupiah(group.expenseSubtotal)}
                   </span>
                 )}
               </div>
 
-              <div className="rounded-2xl bg-white border border-slate-200/80 divide-y divide-slate-100 overflow-hidden">
+              <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 divide-y divide-slate-100 dark:divide-slate-800 overflow-hidden">
                 {group.items.map((tx) => {
                   const isExpense = tx.type === 'expense';
                   return (
                     <div
                       key={tx.id}
-                      className="flex items-center gap-2 px-3.5 py-2.5 hover:bg-slate-50/70 transition-colors"
+                      className="flex items-center gap-2 px-3.5 py-2.5 hover:bg-slate-50/70 dark:hover:bg-slate-800/50 transition-colors"
                     >
                       <button
                         type="button"
@@ -262,10 +264,10 @@ export function RiwayatPage({
                         <CategoryIcon category={tx.category} />
 
                         <div className="min-w-0 flex-1">
-                          <p className="text-sm font-semibold text-slate-900 truncate">
+                          <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">
                             {tx.note}
                           </p>
-                          <div className="mt-0.5 flex items-center gap-1.5 text-xs text-slate-500">
+                          <div className="mt-0.5 flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
                             <span className="truncate">{tx.category}</span>
                             <span aria-hidden="true">·</span>
                             <span className="tabular-nums shrink-0">{tx.time}</span>
@@ -274,7 +276,9 @@ export function RiwayatPage({
 
                         <span
                           className={`text-sm font-bold tabular-nums whitespace-nowrap shrink-0 ${
-                            isExpense ? 'text-slate-900' : 'text-emerald-600'
+                            isExpense
+                              ? 'text-slate-900 dark:text-slate-100'
+                              : 'text-emerald-600 dark:text-emerald-400'
                           }`}
                         >
                           {isExpense
@@ -287,7 +291,7 @@ export function RiwayatPage({
                         type="button"
                         onClick={() => onDelete(tx.id)}
                         aria-label={`Hapus transaksi ${tx.note}`}
-                        className="min-h-[44px] min-w-[44px] -mr-1.5 flex items-center justify-center rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 active:scale-95 transition-all touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
+                        className="min-h-[44px] min-w-[44px] -mr-1.5 flex items-center justify-center rounded-xl text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/50 active:scale-95 transition-all touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>

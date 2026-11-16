@@ -29,10 +29,17 @@ export function QuickAddChips({ onQuickAdd }: QuickAddChipsProps) {
     <section aria-label="Pengeluaran Cepat" className="mt-5">
       <div className="flex items-center justify-between px-0.5 mb-2">
         <div className="flex items-center gap-1.5">
-          <Zap className="w-4 h-4 text-emerald-600" aria-hidden="true" />
-          <h2 className="text-sm font-bold text-slate-900">Tambah Cepat</h2>
+          <Zap
+            className="w-4 h-4 text-emerald-600 dark:text-emerald-400"
+            aria-hidden="true"
+          />
+          <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100">
+            Tambah Cepat
+          </h2>
         </div>
-        <span className="text-[11px] text-slate-500">Ketuk 1x langsung tersimpan</span>
+        <span className="text-[11px] text-slate-500 dark:text-slate-400">
+          Ketuk 1x langsung tersimpan
+        </span>
       </div>
 
       {/* Filter Tabs for Makanan / Minuman / PKL */}
@@ -46,8 +53,8 @@ export function QuickAddChips({ onQuickAdd }: QuickAddChipsProps) {
               onClick={() => setActiveGroup(tab.id)}
               className={`min-h-[34px] px-3 py-1 rounded-lg text-xs font-semibold whitespace-nowrap shrink-0 transition-colors touch-manipulation ${
                 isActive
-                  ? 'bg-slate-900 text-white'
-                  : 'bg-white border border-slate-200/80 text-slate-600 hover:text-slate-900'
+                  ? 'bg-slate-900 dark:bg-emerald-500 text-white dark:text-slate-950'
+                  : 'bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100'
               }`}
             >
               {tab.label}
@@ -63,17 +70,17 @@ export function QuickAddChips({ onQuickAdd }: QuickAddChipsProps) {
             key={tpl.id}
             type="button"
             onClick={() => onQuickAdd(tpl)}
-            className="min-h-[48px] px-3 py-2 rounded-xl bg-white border border-slate-200/90 hover:border-emerald-300 hover:bg-emerald-50/50 active:scale-[0.97] transition-all duration-150 flex items-center justify-between gap-2 text-left shadow-2xs touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+            className="min-h-[48px] px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 hover:border-emerald-300 dark:hover:border-emerald-700 hover:bg-emerald-50/50 dark:hover:bg-emerald-950/30 active:scale-[0.97] transition-all duration-150 flex items-center justify-between gap-2 text-left shadow-2xs touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
           >
             <span className="flex items-center gap-1.5 min-w-0">
               <span aria-hidden="true" className="text-sm leading-none shrink-0">
                 {tpl.emoji}
               </span>
-              <span className="text-xs font-semibold text-slate-800 truncate">
+              <span className="text-xs font-semibold text-slate-800 dark:text-slate-100 truncate">
                 {tpl.label}
               </span>
             </span>
-            <span className="text-[11px] font-bold text-emerald-700 tabular-nums shrink-0">
+            <span className="text-[11px] font-bold text-emerald-700 dark:text-emerald-400 tabular-nums shrink-0">
               {formatCompactRupiah(tpl.amount)}
             </span>
           </button>

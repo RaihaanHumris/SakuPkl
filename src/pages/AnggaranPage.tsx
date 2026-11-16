@@ -2,8 +2,10 @@ import {
   Building2,
   Download,
   Eraser,
+  Moon,
   RotateCcw,
   Save,
+  Sun,
   User,
 } from 'lucide-react';
 import { useEffect, useState, type FormEvent } from 'react';
@@ -18,11 +20,14 @@ import {
   parseThousandsInput,
 } from '../utils/format';
 import { confirmDialog } from '../utils/notify';
+import { PWAInstallButton } from '../components/PWAInstallButton';
 
 interface AnggaranPageProps {
   budget: BudgetSettings;
   periodInfo: PeriodInfo;
   transactionCount: number;
+  isDark: boolean;
+  onToggleTheme: () => void;
   onSaveBudget: (nextBudget: BudgetSettings) => void;
   onStartFromZero: (customBudget?: Partial<BudgetSettings>) => void;
   onResetToDemo: () => void;
@@ -33,6 +38,8 @@ export function AnggaranPage({
   budget,
   periodInfo,
   transactionCount,
+  isDark,
+  onToggleTheme,
   onSaveBudget,
   onStartFromZero,
   onResetToDemo,
@@ -106,22 +113,63 @@ export function AnggaranPage({
   return (
     <div className="space-y-4">
       <div className="px-0.5 pt-1">
-        <h1 className="text-lg font-extrabold tracking-tight text-slate-900">
+        <h1 className="text-lg font-extrabold tracking-tight text-slate-900 dark:text-slate-100">
           Anggaran & Data
         </h1>
-        <p className="text-xs text-slate-500 mt-0.5">
-          Sesuaikan profil, uang saku, periode PKL, atau mulai dari nol
+        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+          Sesuaikan profil, uang saku, tema aplikasi, atau mulai dari nol
         </p>
       </div>
+
+      <PWAInstallButton variant="card" />
+
+      {/* Pengaturan Tema (Dark Mode Toggle) */}
+      <section
+        aria-label="Tampilan Aplikasi"
+        className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-4 flex items-center justify-between gap-3"
+      >
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-amber-300 flex items-center justify-center shrink-0">
+            {isDark ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
+          </div>
+          <div className="min-w-0">
+            <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100">
+              Mode Tampilan
+            </h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+              {isDark ? 'Mode Gelap aktif' : 'Mode Terang aktif'}
+            </p>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          role="switch"
+          aria-checked={isDark}
+          onClick={onToggleTheme}
+          className={`relative inline-flex h-8 w-14 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 touch-manipulation ${
+            isDark ? 'bg-emerald-600' : 'bg-slate-200'
+          }`}
+        >
+          <span className="sr-only">Aktifkan mode gelap</span>
+          <span
+            className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-sm transition duration-200 ${
+              isDark ? 'translate-x-6' : 'translate-x-0.5'
+            }`}
+          />
+        </button>
+      </section>
 
       {/* Form Profil & Anggaran PKL */}
       <form
         onSubmit={handleSubmit}
-        className="rounded-2xl bg-white border border-slate-200/80 p-4 space-y-4"
+        className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-4 space-y-4"
       >
         <div>
-          <h2 className="text-sm font-bold text-slate-900">Profil & Uang Saku PKL</h2>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100">
+            Profil & Uang Saku PKL
+          </h2>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
             Atur total anggaran dan durasi PKL agar batas harianmu akurat.
           </p>
         </div>
@@ -130,7 +178,7 @@ export function AnggaranPage({
           <div>
             <label
               htmlFor="cfg-name"
-              className="block text-xs font-semibold text-slate-700 mb-1.5"
+              className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5"
             >
               Nama Lengkap / Panggilan
             </label>
@@ -146,7 +194,7 @@ export function AnggaranPage({
                 value={userName}
                 onChange={(e) => setUserName(e.target.value)}
                 placeholder="Muhammad Raihaan Humris"
-                className="w-full h-11 pl-9 pr-3 rounded-xl bg-white border border-slate-200 text-sm text-slate-900 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+                className="w-full h-11 pl-9 pr-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
               />
             </div>
           </div>
@@ -154,7 +202,7 @@ export function AnggaranPage({
           <div>
             <label
               htmlFor="cfg-place"
-              className="block text-xs font-semibold text-slate-700 mb-1.5"
+              className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5"
             >
               Tempat PKL (Opsional)
             </label>
@@ -170,7 +218,7 @@ export function AnggaranPage({
                 value={pklPlace}
                 onChange={(e) => setPklPlace(e.target.value)}
                 placeholder="PT Maju Jaya"
-                className="w-full h-11 pl-9 pr-3 rounded-xl bg-white border border-slate-200 text-sm text-slate-900 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+                className="w-full h-11 pl-9 pr-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
               />
             </div>
           </div>
@@ -180,7 +228,7 @@ export function AnggaranPage({
         <div>
           <label
             htmlFor="cfg-allowance"
-            className="block text-xs font-semibold text-slate-700 mb-1.5"
+            className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5"
           >
             Total Uang Saku PKL
           </label>
@@ -195,7 +243,7 @@ export function AnggaranPage({
               value={allowanceInput}
               onChange={(e) => setAllowanceInput(formatThousandsInput(e.target.value))}
               placeholder="1.500.000"
-              className="w-full h-12 pl-11 pr-4 rounded-xl bg-slate-50 border border-slate-200 text-lg font-extrabold text-slate-900 tabular-nums focus:bg-white focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+              className="w-full h-12 pl-11 pr-4 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-lg font-extrabold text-slate-900 dark:text-slate-100 tabular-nums focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
             />
           </div>
           <div className="mt-2 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
@@ -206,8 +254,8 @@ export function AnggaranPage({
                 onClick={() => setAllowanceInput(preset.toLocaleString('id-ID'))}
                 className={`min-h-[36px] px-3 py-1 rounded-lg text-xs font-semibold tabular-nums whitespace-nowrap shrink-0 transition-all touch-manipulation ${
                   parsedAllowance === preset
-                    ? 'bg-emerald-100 text-emerald-800'
-                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200/70'
+                    ? 'bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200/70 dark:hover:bg-slate-700'
                 }`}
               >
                 Rp {formatCompactRupiah(preset)}
@@ -221,7 +269,7 @@ export function AnggaranPage({
           <div>
             <label
               htmlFor="cfg-duration"
-              className="block text-xs font-semibold text-slate-700 mb-1.5"
+              className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5"
             >
               Durasi PKL (Hari)
             </label>
@@ -233,14 +281,14 @@ export function AnggaranPage({
               max={365}
               value={durationInput}
               onChange={(e) => setDurationInput(e.target.value)}
-              className="w-full h-11 px-3.5 rounded-xl bg-white border border-slate-200 text-sm font-semibold text-slate-900 tabular-nums focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+              className="w-full h-11 px-3.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-semibold text-slate-900 dark:text-slate-100 tabular-nums focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
             />
           </div>
 
           <div>
             <label
               htmlFor="cfg-start"
-              className="block text-xs font-semibold text-slate-700 mb-1.5"
+              className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5"
             >
               Tanggal Mulai
             </label>
@@ -249,7 +297,7 @@ export function AnggaranPage({
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              className="w-full h-11 px-3 rounded-xl bg-white border border-slate-200 text-sm font-medium text-slate-900 tabular-nums focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+              className="w-full h-11 px-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-900 dark:text-slate-100 tabular-nums focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
             />
           </div>
         </div>
@@ -263,8 +311,8 @@ export function AnggaranPage({
               onClick={() => setDurationInput(String(days))}
               className={`min-h-[36px] px-3 py-1 rounded-lg text-xs font-semibold tabular-nums whitespace-nowrap shrink-0 transition-all touch-manipulation ${
                 parsedDuration === days
-                  ? 'bg-emerald-100 text-emerald-800'
-                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200/70'
+                  ? 'bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200/70 dark:hover:bg-slate-700'
               }`}
             >
               {days} hari
@@ -273,14 +321,16 @@ export function AnggaranPage({
         </div>
 
         {/* Preview Target & Tanggal Selesai */}
-        <div className="rounded-xl bg-emerald-50/70 px-3.5 py-3 space-y-1 text-xs">
+        <div className="rounded-xl bg-emerald-50/70 dark:bg-emerald-950/40 px-3.5 py-3 space-y-1 text-xs">
           <div className="flex items-center justify-between">
-            <span className="text-emerald-800 font-medium">Target batas awal/hari</span>
-            <span className="font-bold text-emerald-700 tabular-nums">
+            <span className="text-emerald-800 dark:text-emerald-300 font-medium">
+              Target batas awal/hari
+            </span>
+            <span className="font-bold text-emerald-700 dark:text-emerald-400 tabular-nums">
               {formatRupiah(estimatedDaily)}/hari
             </span>
           </div>
-          <div className="flex items-center justify-between text-emerald-800/80">
+          <div className="flex items-center justify-between text-emerald-800/80 dark:text-emerald-300/80">
             <span>Estimasi selesai PKL</span>
             <span className="font-semibold tabular-nums">
               {formatReadableDate(periodInfo.endDate)}
@@ -300,11 +350,13 @@ export function AnggaranPage({
       {/* Kelola Data & Mulai Dari Nol */}
       <section
         aria-label="Kelola Data Keuangan"
-        className="rounded-2xl bg-white border border-slate-200/80 p-4 space-y-3"
+        className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-4 space-y-3"
       >
         <div>
-          <h2 className="text-sm font-bold text-slate-900">Kelola Data & Reset</h2>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100">
+            Kelola Data & Reset
+          </h2>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
             Saat ini tersimpan {transactionCount} transaksi di perangkat ini.
           </p>
         </div>
@@ -313,9 +365,9 @@ export function AnggaranPage({
           type="button"
           onClick={onExportCsv}
           disabled={transactionCount === 0}
-          className="w-full min-h-[44px] px-4 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 disabled:opacity-50 text-xs font-semibold text-slate-800 flex items-center justify-center gap-2 transition-colors touch-manipulation"
+          className="w-full min-h-[44px] px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-50 text-xs font-semibold text-slate-800 dark:text-slate-200 flex items-center justify-center gap-2 transition-colors touch-manipulation"
         >
-          <Download className="w-4 h-4 text-slate-600" />
+          <Download className="w-4 h-4 text-slate-600 dark:text-slate-400" />
           <span>Unduh Backup CSV</span>
         </button>
 
@@ -323,7 +375,7 @@ export function AnggaranPage({
           <button
             type="button"
             onClick={handleConfirmStartFromZero}
-            className="w-full min-h-[44px] px-4 rounded-xl border border-rose-200 bg-rose-50/70 hover:bg-rose-50 text-xs font-semibold text-rose-700 flex items-center justify-center gap-2 transition-colors touch-manipulation"
+            className="w-full min-h-[44px] px-4 rounded-xl border border-rose-200 dark:border-rose-900/70 bg-rose-50/70 dark:bg-rose-950/40 hover:bg-rose-50 dark:hover:bg-rose-950/60 text-xs font-semibold text-rose-700 dark:text-rose-300 flex items-center justify-center gap-2 transition-colors touch-manipulation"
           >
             <Eraser className="w-4 h-4" />
             <span>Mulai dari Nol (Kosongkan Transaksi)</span>
@@ -332,9 +384,9 @@ export function AnggaranPage({
           <button
             type="button"
             onClick={handleConfirmResetDemo}
-            className="w-full min-h-[44px] px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 flex items-center justify-center gap-2 transition-colors touch-manipulation"
+            className="w-full min-h-[44px] px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center justify-center gap-2 transition-colors touch-manipulation"
           >
-            <RotateCcw className="w-4 h-4 text-slate-500" />
+            <RotateCcw className="w-4 h-4 text-slate-500 dark:text-slate-400" />
             <span>Muat Data Contoh (Demo PKL)</span>
           </button>
         </div>

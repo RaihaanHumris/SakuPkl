@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { BottomNav } from './components/BottomNav';
 import { Header } from './components/Header';
+import { OfflineIndicator } from './components/OfflineIndicator';
 import { TransactionModal } from './components/TransactionModal';
 import { useFinanceStore, type TransactionInput } from './hooks/useFinanceStore';
+import { useTheme } from './hooks/useTheme';
 import { AnggaranPage } from './pages/AnggaranPage';
 import { BerandaPage } from './pages/BerandaPage';
 import { RiwayatPage } from './pages/RiwayatPage';
@@ -14,9 +16,12 @@ import type {
   Transaction,
 } from './types/finance';
 import { formatRupiah, getLocalDateString } from './utils/format';
-import { notifyToast } from './utils/notify';
+import { notifyLargeExpenseWarning, notifyToast } from './utils/notify';
+
+const LARGE_EXPENSE_THRESHOLD = 50000;
 
 export default function App() {
+  const { isDark, toggleTheme } = useTheme();
   const {
     budget,
     transactions,
@@ -53,13 +58,37 @@ export default function App() {
   };
 
   const handleQuickAdd = (template: QuickTemplate) => {
+    const todayStr = getLocalDateString();
+    const prevTodayExpense = metrics.todayExpense;
+    const nextTodayExpense = prevTodayExpense + template.amount;
+
     const created = addTransaction({
       type: 'expense',
       category: template.category,
       amount: template.amount,
       note: template.note,
-      date: getLocalDateString(),
+      date: todayStr,
     });
+
+    if (
+      prevTodayExpense <= LARGE_EXPENSE_THRESHOLD &&
+      nextTodayExpense > LARGE_EXPENSE_THRESHOLD
+    ) {
+      void notifyLargeExpenseWarning({
+        title: 'Peringatan Pengeluaran > Rp 50.000!',
+        text: `Total pengeluaran hari ini mencapai ${formatRupiah(nextTodayExpense)} setelah menambah ${template.label} (${formatRupiah(template.amount)}).`,
+        undoAction: () => {
+          deleteTransaction(created.id);
+          void notifyToast({
+            title: 'Transaksi dibatalkan',
+            icon: 'info',
+            timer: 2000,
+          });
+        },
+      });
+      return;
+    }
+
     void notifyToast({
       title: `Tersimpan! ${template.label}`,
       text: `${formatRupiah(template.amount)} · ${template.category}`,
@@ -78,8 +107,17 @@ export default function App() {
   };
 
   const handleSaveTransaction = (input: TransactionInput, editId?: string) => {
+    const todayStr = getLocalDateString();
+
     if (editId) {
       updateTransaction(editId, input);
+      if (input.type === 'expense' && input.amount > LARGE_EXPENSE_THRESHOLD) {
+        void notifyLargeExpenseWarning({
+          title: 'Peringatan Pengeluaran > Rp 50.000!',
+          text: `Catatan "${input.note.trim() || input.category}" bernilai ${formatRupiah(input.amount)}, melebihi Rp 50.000.`,
+        });
+        return;
+      }
       void notifyToast({
         title: 'Perubahan tersimpan!',
         text: `${input.note.trim() || input.category} · ${formatRupiah(input.amount)}`,
@@ -88,20 +126,51 @@ export default function App() {
       return;
     }
 
+    const prevTodayExpense = metrics.todayExpense;
+    const isTodayExpense = input.type === 'expense' && input.date === todayStr;
+    const nextTodayExpense = isTodayExpense
+      ? prevTodayExpense + input.amount
+      : prevTodayExpense;
+
     const created = addTransaction(input);
+
+    const undoCreated = () => {
+      deleteTransaction(created.id);
+      void notifyToast({
+        title: 'Transaksi dibatalkan',
+        icon: 'info',
+        timer: 2000,
+      });
+    };
+
+    if (input.type === 'expense' && input.amount > LARGE_EXPENSE_THRESHOLD) {
+      void notifyLargeExpenseWarning({
+        title: 'Peringatan Pengeluaran > Rp 50.000!',
+        text: `Pengeluaran "${input.note.trim() || input.category}" sebesar ${formatRupiah(input.amount)} melebihi Rp 50.000. Pastikan sesuai batas anggaran PKL-mu.`,
+        undoAction: undoCreated,
+      });
+      return;
+    }
+
+    if (
+      isTodayExpense &&
+      prevTodayExpense <= LARGE_EXPENSE_THRESHOLD &&
+      nextTodayExpense > LARGE_EXPENSE_THRESHOLD
+    ) {
+      void notifyLargeExpenseWarning({
+        title: 'Pengeluaran Hari Ini > Rp 50.000!',
+        text: `Total pengeluaran hari ini kini mencapai ${formatRupiah(nextTodayExpense)}. Yuk jaga pengeluaran sisa hari ini.`,
+        undoAction: undoCreated,
+      });
+      return;
+    }
+
     const prefix = input.type === 'expense' ? 'Pengeluaran' : 'Pemasukan';
     void notifyToast({
       title: `${prefix} ${formatRupiah(input.amount)} tersimpan!`,
       text: input.note.trim() || input.category,
       icon: 'success',
-      undoAction: () => {
-        deleteTransaction(created.id);
-        void notifyToast({
-          title: 'Transaksi dibatalkan',
-          icon: 'info',
-          timer: 2000,
-        });
-      },
+      undoAction: undoCreated,
     });
   };
 
@@ -176,19 +245,23 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-dvh bg-slate-100">
-      <div className="max-w-md mx-auto min-h-dvh bg-slate-50 shadow-xl relative pb-24">
+    <div className="min-h-dvh bg-slate-100 dark:bg-slate-950 transition-colors">
+      <div className="max-w-md mx-auto min-h-dvh bg-slate-50 dark:bg-slate-950 shadow-xl dark:shadow-black/50 dark:border-x dark:border-slate-800/70 relative pb-24 transition-colors">
         <Header
-          userName={budget.userName}
-          pklPlace={budget.pklPlace}
           periodInfo={metrics.periodInfo}
           activePage={activePage}
+          isDark={isDark}
+          onToggleTheme={toggleTheme}
           onNavigate={handleNavigate}
         />
+
+        <OfflineIndicator />
 
         <main className="px-4 pt-2">
           {activePage === 'beranda' && (
             <BerandaPage
+              userName={budget.userName}
+              pklPlace={budget.pklPlace}
               remainingBalance={metrics.remainingBalance}
               totalBudgetPool={metrics.totalBudgetPool}
               remainingPercent={metrics.remainingPercent}
@@ -230,6 +303,7 @@ export default function App() {
               categoryBreakdown={categoryBreakdown}
               last7DaysSpend={last7DaysSpend}
               transactionCount={transactions.length}
+              isDark={isDark}
               onExportCsv={handleExportCsv}
               onCopySummary={handleCopySummary}
             />
@@ -240,6 +314,8 @@ export default function App() {
               budget={budget}
               periodInfo={metrics.periodInfo}
               transactionCount={transactions.length}
+              isDark={isDark}
+              onToggleTheme={toggleTheme}
               onSaveBudget={handleSaveBudget}
               onStartFromZero={handleStartFromZero}
               onResetToDemo={handleResetToDemo}

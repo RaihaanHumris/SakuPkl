@@ -110,24 +110,27 @@ export function TransactionModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-900/50 backdrop-blur-xs"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-900/55 dark:bg-black/70 backdrop-blur-xs"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-tx-title"
     >
       <div
-        className="w-full max-w-md bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl border border-slate-200/80 max-h-[92dvh] overflow-y-auto animate-[slideUp_180ms_cubic-bezier(0.16,1,0.3,1)] pb-[env(safe-area-inset-bottom)]"
+        className="w-full max-w-md bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-2xl shadow-2xl border border-slate-200/80 dark:border-slate-800 max-h-[92dvh] overflow-y-auto animate-[slideUp_180ms_cubic-bezier(0.16,1,0.3,1)] pb-[env(safe-area-inset-bottom)]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Drag Handle */}
         <div className="pt-3 pb-1 flex justify-center sm:hidden">
-          <div className="w-10 h-1.5 rounded-full bg-slate-200" />
+          <div className="w-10 h-1.5 rounded-full bg-slate-200 dark:bg-slate-700" />
         </div>
 
         {/* Header */}
         <div className="flex items-center justify-between px-5 pt-2.5 pb-2">
-          <h2 id="modal-tx-title" className="text-base font-bold text-slate-900">
+          <h2
+            id="modal-tx-title"
+            className="text-base font-bold text-slate-900 dark:text-slate-100"
+          >
             {isEditing ? 'Ubah Transaksi' : 'Catat Transaksi'}
           </h2>
           <div className="flex items-center gap-1">
@@ -139,7 +142,7 @@ export function TransactionModal({
                   onClose();
                 }}
                 aria-label="Hapus transaksi ini"
-                className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-rose-500 hover:bg-rose-50 transition-colors touch-manipulation"
+                className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/50 transition-colors touch-manipulation"
               >
                 <Trash2 className="w-5 h-5" />
               </button>
@@ -148,7 +151,7 @@ export function TransactionModal({
               type="button"
               onClick={onClose}
               aria-label="Tutup modal"
-              className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors touch-manipulation"
+              className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors touch-manipulation"
             >
               <X className="w-5 h-5" />
             </button>
@@ -157,14 +160,14 @@ export function TransactionModal({
 
         <form onSubmit={handleSubmit} className="px-5 pb-6 space-y-4">
           {/* Segmented Toggle: Pengeluaran vs Pemasukan Tambahan */}
-          <div className="grid grid-cols-2 gap-1 p-1 rounded-xl bg-slate-100">
+          <div className="grid grid-cols-2 gap-1 p-1 rounded-xl bg-slate-100 dark:bg-slate-800">
             <button
               type="button"
               onClick={() => handleTypeChange('expense')}
               className={`min-h-[44px] rounded-lg text-xs font-semibold transition-all touch-manipulation ${
                 type === 'expense'
-                  ? 'bg-white text-rose-600 shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-white dark:bg-slate-900 text-rose-600 dark:text-rose-400 shadow-xs'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
             >
               Pengeluaran
@@ -174,8 +177,8 @@ export function TransactionModal({
               onClick={() => handleTypeChange('income')}
               className={`min-h-[44px] rounded-lg text-xs font-semibold transition-all touch-manipulation ${
                 type === 'income'
-                  ? 'bg-white text-emerald-600 shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
+                  ? 'bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-xs'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
             >
               Pemasukan Tambahan
@@ -186,7 +189,7 @@ export function TransactionModal({
           <div>
             <label
               htmlFor="tx-amount"
-              className="block text-xs font-semibold text-slate-700 mb-1.5"
+              className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5"
             >
               Nominal
             </label>
@@ -202,7 +205,7 @@ export function TransactionModal({
                 value={amountInput}
                 onChange={(e) => handleAmountChange(e.target.value)}
                 placeholder="15.000"
-                className="w-full h-14 pl-12 pr-4 rounded-xl bg-slate-50 border border-slate-200 text-2xl font-extrabold text-slate-900 tabular-nums placeholder:text-slate-300 focus:bg-white focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
+                className="w-full h-14 pl-12 pr-4 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-2xl font-extrabold text-slate-900 dark:text-slate-100 tabular-nums placeholder:text-slate-300 dark:placeholder:text-slate-600 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
               />
             </div>
 
@@ -213,7 +216,7 @@ export function TransactionModal({
                   key={preset}
                   type="button"
                   onClick={() => handlePresetNominal(preset)}
-                  className="min-h-[36px] px-3 py-1 rounded-lg bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 text-xs font-semibold text-slate-700 tabular-nums whitespace-nowrap shrink-0 active:scale-95 transition-all touch-manipulation"
+                  className="min-h-[36px] px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 hover:text-emerald-700 dark:hover:text-emerald-400 text-xs font-semibold text-slate-700 dark:text-slate-300 tabular-nums whitespace-nowrap shrink-0 active:scale-95 transition-all touch-manipulation"
                 >
                   Rp {formatCompactRupiah(preset)}
                 </button>
@@ -221,13 +224,23 @@ export function TransactionModal({
             </div>
 
             {errorMsg && (
-              <p className="mt-1.5 text-xs font-medium text-rose-600">{errorMsg}</p>
+              <p className="mt-1.5 text-xs font-medium text-rose-600 dark:text-rose-400">
+                {errorMsg}
+              </p>
+            )}
+
+            {type === 'expense' && parseThousandsInput(amountInput) > 50000 && (
+              <div className="mt-2 rounded-xl bg-amber-50 dark:bg-amber-950/50 border border-amber-200/80 dark:border-amber-800/70 px-3 py-2 text-xs font-medium text-amber-800 dark:text-amber-300">
+                Peringatan: Pengeluaran ini melebihi batas Rp 50.000. Pastikan sesuai anggaranmu.
+              </div>
             )}
           </div>
 
           {/* Interactive Category Icon Grid */}
           <div>
-            <p className="text-xs font-semibold text-slate-700 mb-2">Kategori</p>
+            <p className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2">
+              Kategori
+            </p>
             <div className="grid grid-cols-3 gap-2">
               {categories.map((cat) => {
                 const isSelected = category === cat;
@@ -238,14 +251,16 @@ export function TransactionModal({
                     onClick={() => setCategory(cat)}
                     className={`min-h-[72px] p-2.5 rounded-xl border flex flex-col items-center justify-center gap-1.5 text-center transition-all touch-manipulation ${
                       isSelected
-                        ? 'border-emerald-500 bg-emerald-50/70 ring-1 ring-emerald-500'
-                        : 'border-slate-200/80 bg-white hover:bg-slate-50'
+                        ? 'border-emerald-500 bg-emerald-50/70 dark:bg-emerald-950/50 ring-1 ring-emerald-500'
+                        : 'border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800'
                     }`}
                   >
                     <CategoryIcon category={cat} size="sm" />
                     <span
                       className={`text-[11px] font-semibold leading-tight ${
-                        isSelected ? 'text-emerald-800' : 'text-slate-700'
+                        isSelected
+                          ? 'text-emerald-800 dark:text-emerald-300'
+                          : 'text-slate-700 dark:text-slate-300'
                       }`}
                     >
                       {cat}
@@ -261,7 +276,7 @@ export function TransactionModal({
             <div>
               <label
                 htmlFor="tx-note"
-                className="block text-xs font-semibold text-slate-700 mb-1.5"
+                className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5"
               >
                 Catatan Singkat
               </label>
@@ -281,7 +296,7 @@ export function TransactionModal({
                       ? 'Nasi padang + es teh'
                       : 'Uang transport minggu ke-2'
                   }
-                  className="w-full h-12 pl-10 pr-4 rounded-xl bg-white border border-slate-200 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+                  className="w-full h-12 pl-10 pr-4 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
                 />
               </div>
             </div>
@@ -289,7 +304,7 @@ export function TransactionModal({
             <div>
               <label
                 htmlFor="tx-date"
-                className="block text-xs font-semibold text-slate-700 mb-1.5"
+                className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5"
               >
                 Tanggal
               </label>
@@ -303,7 +318,7 @@ export function TransactionModal({
                   type="date"
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
-                  className="w-full h-12 pl-10 pr-4 rounded-xl bg-white border border-slate-200 text-sm text-slate-900 tabular-nums focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+                  className="w-full h-12 pl-10 pr-4 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm text-slate-900 dark:text-slate-100 tabular-nums focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
                 />
               </div>
             </div>
@@ -312,7 +327,7 @@ export function TransactionModal({
           {/* Submit CTA */}
           <button
             type="submit"
-            className="w-full h-12 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-sm font-bold text-white shadow-sm active:scale-[0.98] transition-all touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
+            className="w-full h-12 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-sm font-bold text-white shadow-sm active:scale-[0.98] transition-all touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
           >
             {isEditing
               ? 'Simpan Perubahan'

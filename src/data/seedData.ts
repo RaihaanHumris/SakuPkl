@@ -42,43 +42,43 @@ export interface CategoryStyle {
 
 export const CATEGORY_STYLES: Record<TransactionCategory, CategoryStyle> = {
   'Makan & Minum': {
-    bgClass: 'bg-amber-50',
-    textClass: 'text-amber-600',
+    bgClass: 'bg-amber-50 dark:bg-amber-950/60',
+    textClass: 'text-amber-600 dark:text-amber-400',
     barClass: 'bg-amber-500',
   },
   Transportasi: {
-    bgClass: 'bg-sky-50',
-    textClass: 'text-sky-600',
+    bgClass: 'bg-sky-50 dark:bg-sky-950/60',
+    textClass: 'text-sky-600 dark:text-sky-400',
     barClass: 'bg-sky-500',
   },
   'Kebutuhan PKL': {
-    bgClass: 'bg-violet-50',
-    textClass: 'text-violet-600',
+    bgClass: 'bg-violet-50 dark:bg-violet-950/60',
+    textClass: 'text-violet-600 dark:text-violet-400',
     barClass: 'bg-violet-500',
   },
   'Jajan & Kopi': {
-    bgClass: 'bg-orange-50',
-    textClass: 'text-orange-600',
+    bgClass: 'bg-orange-50 dark:bg-orange-950/60',
+    textClass: 'text-orange-600 dark:text-orange-400',
     barClass: 'bg-orange-500',
   },
   'Lain-lain': {
-    bgClass: 'bg-slate-100',
-    textClass: 'text-slate-600',
+    bgClass: 'bg-slate-100 dark:bg-slate-800',
+    textClass: 'text-slate-600 dark:text-slate-300',
     barClass: 'bg-slate-500',
   },
   'Uang Transport': {
-    bgClass: 'bg-emerald-50',
-    textClass: 'text-emerald-600',
+    bgClass: 'bg-emerald-50 dark:bg-emerald-950/60',
+    textClass: 'text-emerald-600 dark:text-emerald-400',
     barClass: 'bg-emerald-500',
   },
   'Bonus PKL': {
-    bgClass: 'bg-emerald-50',
-    textClass: 'text-emerald-600',
+    bgClass: 'bg-emerald-50 dark:bg-emerald-950/60',
+    textClass: 'text-emerald-600 dark:text-emerald-400',
     barClass: 'bg-emerald-500',
   },
   'Uang Saku': {
-    bgClass: 'bg-teal-50',
-    textClass: 'text-teal-600',
+    bgClass: 'bg-teal-50 dark:bg-teal-950/60',
+    textClass: 'text-teal-600 dark:text-teal-400',
     barClass: 'bg-teal-500',
   },
 };

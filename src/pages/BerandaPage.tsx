@@ -1,4 +1,4 @@
-import { ArrowRight, Plus, ReceiptText } from 'lucide-react';
+import { ArrowRight, ChevronRight, Plus, ReceiptText } from 'lucide-react';
 import { BalanceHeroCard } from '../components/BalanceHeroCard';
 import { CategoryIcon } from '../components/CategoryIcon';
 import { QuickAddChips } from '../components/QuickAddChips';
@@ -12,6 +12,8 @@ import type {
 import { formatDateHeader, formatRupiah } from '../utils/format';
 
 interface BerandaPageProps {
+  userName: string;
+  pklPlace: string;
   remainingBalance: number;
   totalBudgetPool: number;
   remainingPercent: number;
@@ -28,7 +30,16 @@ interface BerandaPageProps {
   onNavigate: (page: ActivePage) => void;
 }
 
+function getInitials(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return 'PK';
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+}
+
 export function BerandaPage({
+  userName,
+  pklPlace,
   remainingBalance,
   totalBudgetPool,
   remainingPercent,
@@ -44,8 +55,39 @@ export function BerandaPage({
   onOpenAddModal,
   onNavigate,
 }: BerandaPageProps) {
+  const initials = getInitials(userName);
+
   return (
     <div className="space-y-4 pt-1">
+      {/* Non-sticky Personal Profile Greeting */}
+      <button
+        type="button"
+        onClick={() => onNavigate('anggaran')}
+        aria-label="Buka profil dan pengaturan anggaran"
+        className="w-full flex items-center justify-between gap-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 px-3.5 py-3 text-left hover:bg-slate-50/70 dark:hover:bg-slate-800/70 active:scale-[0.99] transition-all touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+      >
+        <div className="flex items-center gap-3 min-w-0">
+          <div
+            className="w-10 h-10 rounded-full bg-emerald-600 text-white text-xs font-extrabold flex items-center justify-center shrink-0 shadow-xs"
+            aria-hidden="true"
+          >
+            {initials}
+          </div>
+          <div className="min-w-0">
+            <h1 className="text-sm font-extrabold tracking-tight text-slate-900 dark:text-slate-100 leading-snug">
+              Halo, {userName} 👋
+            </h1>
+            <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">
+              {pklPlace ? `PKL di ${pklPlace}` : 'Dompet harian anak PKL'}
+            </p>
+          </div>
+        </div>
+        <ChevronRight
+          className="w-4 h-4 text-slate-400 dark:text-slate-500 shrink-0"
+          aria-hidden="true"
+        />
+      </button>
+
       <BalanceHeroCard
         remainingBalance={remainingBalance}
         totalBudgetPool={totalBudgetPool}
@@ -62,12 +104,14 @@ export function BerandaPage({
       {/* Transaksi Terbaru Preview */}
       <section aria-label="Transaksi Terbaru">
         <div className="flex items-center justify-between mb-2.5 px-0.5">
-          <h2 className="text-sm font-bold text-slate-900">Transaksi Terbaru</h2>
+          <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100">
+            Transaksi Terbaru
+          </h2>
           {totalTransactionCount > 0 && (
             <button
               type="button"
               onClick={() => onNavigate('riwayat')}
-              className="min-h-[36px] px-2 -mr-2 rounded-lg text-xs font-semibold text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 inline-flex items-center gap-1 transition-colors touch-manipulation"
+              className="min-h-[36px] px-2 -mr-2 rounded-lg text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 inline-flex items-center gap-1 transition-colors touch-manipulation"
             >
               <span>Lihat Semua ({totalTransactionCount})</span>
               <ArrowRight className="w-3.5 h-3.5" aria-hidden="true" />
@@ -76,14 +120,14 @@ export function BerandaPage({
         </div>
 
         {recentTransactions.length === 0 ? (
-          <div className="rounded-2xl bg-white border border-slate-200/80 p-7 text-center">
-            <div className="w-12 h-12 mx-auto rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+          <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-7 text-center">
+            <div className="w-12 h-12 mx-auto rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
               <ReceiptText className="w-6 h-6" strokeWidth={1.8} />
             </div>
-            <h3 className="mt-3 text-sm font-bold text-slate-900">
+            <h3 className="mt-3 text-sm font-bold text-slate-900 dark:text-slate-100">
               Belum ada transaksi tercatat
             </h3>
-            <p className="mt-1 text-xs text-slate-500 max-w-[240px] mx-auto leading-relaxed">
+            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 max-w-[240px] mx-auto leading-relaxed">
               Ketuk tombol Tambah Cepat di atas atau tombol + di bawah untuk mulai mencatat.
             </p>
             <button
@@ -96,7 +140,7 @@ export function BerandaPage({
             </button>
           </div>
         ) : (
-          <div className="rounded-2xl bg-white border border-slate-200/80 divide-y divide-slate-100 overflow-hidden">
+          <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 divide-y divide-slate-100 dark:divide-slate-800 overflow-hidden">
             {recentTransactions.map((tx) => {
               const isExpense = tx.type === 'expense';
               return (
@@ -104,15 +148,15 @@ export function BerandaPage({
                   key={tx.id}
                   type="button"
                   onClick={() => onEditTransaction(tx)}
-                  className="w-full text-left flex items-center gap-3 px-3.5 py-3 hover:bg-slate-50/80 active:bg-slate-100/70 transition-colors touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-emerald-500"
+                  className="w-full text-left flex items-center gap-3 px-3.5 py-3 hover:bg-slate-50/80 dark:hover:bg-slate-800/60 active:bg-slate-100/70 dark:active:bg-slate-800 transition-colors touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-emerald-500"
                 >
                   <CategoryIcon category={tx.category} />
 
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold text-slate-900 truncate">
+                    <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">
                       {tx.note}
                     </p>
-                    <div className="mt-0.5 flex items-center gap-1.5 text-xs text-slate-500">
+                    <div className="mt-0.5 flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
                       <span className="truncate">{tx.category}</span>
                       <span aria-hidden="true">·</span>
                       <span className="shrink-0">{formatDateHeader(tx.date)}</span>
@@ -123,7 +167,9 @@ export function BerandaPage({
 
                   <span
                     className={`text-sm font-bold tabular-nums whitespace-nowrap shrink-0 ${
-                      isExpense ? 'text-slate-900' : 'text-emerald-600'
+                      isExpense
+                        ? 'text-slate-900 dark:text-slate-100'
+                        : 'text-emerald-600 dark:text-emerald-400'
                     }`}
                   >
                     {isExpense
