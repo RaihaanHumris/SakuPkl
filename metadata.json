@@ -1,0 +1,6 @@
+{
+  "name": "SakuPKL",
+  "description": "Pencatat keuangan harian dan pengelola batas aman uang saku untuk pelajar dan mahasiswa Praktik Kerja Lapangan (PKL).",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
